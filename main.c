@@ -1,23 +1,9 @@
-/* main.c - Reconhecedor da linguagem miniPascal
-   Trabalho Final de LFA - UDESC
-
-   Fase 1: analise lexica com o flex (lex.yy.c), que separa o arquivo em tokens.
-   Fase 2: automato de pilha (AP) construido a partir da gramatica livre de
-           contexto. O AP e deterministico porque olha o proximo token e
-           consulta a tabela LL(1) para escolher qual producao empilhar.
-
-   Uso:  main teste.pas        (mostra todos os passos)
-         main teste.pas -r     (mostra so o resultado)
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "tokens.h"
 #include "lex.yy.c"
-
-/* ---------------- Nao-terminais (a partir de 100) ---------------- */
 
 enum {
     PROGRAMA = 100, CABECALHO, LISTA_DECL, DECL, DECL_VAR, LISTA_IDS, RESTO_IDS,
@@ -56,84 +42,80 @@ int eh_terminal(int s)
     return s < 100;
 }
 
-/* ---------------- Producoes da gramatica ----------------
-   prod[n][0] = lado esquerdo, depois o lado direito, terminado em FIM.
-   Producao vazia (epsilon) tem so o lado esquerdo. */
-
 #define FIM -1
 #define NUM_PRODUCOES 69
 
 int prod[NUM_PRODUCOES + 1][10] = {
-    {FIM},                                                      /* 0 nao usada */
-    {PROGRAMA, CABECALHO, LISTA_DECL, PRINCIPAL, FIM},          /* 1 */
-    {CABECALHO, T_PROGRAM, T_ID, T_PONTO_VIRG, FIM},            /* 2 */
-    {CABECALHO, FIM},                                           /* 3 */
-    {LISTA_DECL, DECL, LISTA_DECL, FIM},                        /* 4 */
-    {LISTA_DECL, FIM},                                          /* 5 */
-    {DECL, T_VAR, DECL_VAR, FIM},                               /* 6 */
-    {DECL, DECL_VAR, FIM},                                      /* 7 */
-    {DECL, PROCEDIMENTO, FIM},                                  /* 8 */
-    {DECL, FUNCAO, FIM},                                        /* 9 */
-    {DECL_VAR, LISTA_IDS, T_DOIS_PONTOS, TIPO, T_PONTO_VIRG, FIM}, /* 10 */
-    {LISTA_IDS, T_ID, RESTO_IDS, FIM},                          /* 11 */
-    {RESTO_IDS, T_VIRGULA, T_ID, RESTO_IDS, FIM},               /* 12 */
-    {RESTO_IDS, FIM},                                           /* 13 */
-    {TIPO, T_INTEGER, FIM},                                     /* 14 */
-    {TIPO, T_REAL, FIM},                                        /* 15 */
-    {TIPO, T_BOOLEAN, FIM},                                     /* 16 */
-    {PROCEDIMENTO, T_PROCEDURE, T_ID, PARAMS, T_PONTO_VIRG, CORPO, T_PONTO_VIRG, FIM}, /* 17 */
-    {FUNCAO, T_FUNCTION, T_ID, PARAMS, T_DOIS_PONTOS, TIPO, T_PONTO_VIRG, CORPO, T_PONTO_VIRG, FIM}, /* 18 */
-    {PARAMS, T_ABRE_PAR, LISTA_PARAMS, T_FECHA_PAR, FIM},       /* 19 */
-    {PARAMS, FIM},                                              /* 20 */
-    {LISTA_PARAMS, PARAM, RESTO_PARAMS, FIM},                   /* 21 */
-    {RESTO_PARAMS, T_PONTO_VIRG, PARAM, RESTO_PARAMS, FIM},     /* 22 */
-    {RESTO_PARAMS, FIM},                                        /* 23 */
-    {PARAM, LISTA_IDS, T_DOIS_PONTOS, TIPO, FIM},               /* 24 */
-    {CORPO, SECAO_VAR, BLOCO, FIM},                             /* 25 */
-    {SECAO_VAR, T_VAR, DECL_VAR, RESTO_VAR, FIM},               /* 26 */
-    {SECAO_VAR, FIM},                                           /* 27 */
-    {RESTO_VAR, DECL_VAR, RESTO_VAR, FIM},                      /* 28 */
-    {RESTO_VAR, FIM},                                           /* 29 */
-    {BLOCO, T_BEGIN, LISTA_CMD, T_END, FIM},                    /* 30 */
-    {LISTA_CMD, CMD, RESTO_CMD, FIM},                           /* 31 */
-    {RESTO_CMD, T_PONTO_VIRG, CMD, RESTO_CMD, FIM},             /* 32 */
-    {RESTO_CMD, FIM},                                           /* 33 */
-    {CMD, T_ID, RESTO_ID, FIM},                                 /* 34 */
-    {CMD, T_IF, EXPR, T_THEN, CMD, SENAO, FIM},                 /* 35 */
-    {CMD, T_WHILE, EXPR, T_DO, CMD, FIM},                       /* 36 */
-    {CMD, BLOCO, FIM},                                          /* 37 */
-    {CMD, FIM},                                                 /* 38 */
-    {RESTO_ID, T_ATRIB, EXPR, FIM},                             /* 39 */
-    {RESTO_ID, T_ABRE_PAR, LISTA_ARGS, T_FECHA_PAR, FIM},       /* 40 */
-    {RESTO_ID, FIM},                                            /* 41 */
-    {SENAO, T_ELSE, CMD, FIM},                                  /* 42 */
-    {SENAO, FIM},                                               /* 43 */
-    {LISTA_ARGS, EXPR, RESTO_ARGS, FIM},                        /* 44 */
-    {RESTO_ARGS, T_VIRGULA, EXPR, RESTO_ARGS, FIM},             /* 45 */
-    {RESTO_ARGS, FIM},                                          /* 46 */
-    {EXPR, EXPR_SIMPLES, RESTO_EXPR, FIM},                      /* 47 */
-    {RESTO_EXPR, T_OPREL, EXPR_SIMPLES, FIM},                   /* 48 */
-    {RESTO_EXPR, FIM},                                          /* 49 */
-    {EXPR_SIMPLES, TERMO, RESTO_SOMA, FIM},                     /* 50 */
-    {RESTO_SOMA, T_OPSOMA, TERMO, RESTO_SOMA, FIM},             /* 51 */
-    {RESTO_SOMA, T_OR, TERMO, RESTO_SOMA, FIM},                 /* 52 */
-    {RESTO_SOMA, FIM},                                          /* 53 */
-    {TERMO, FATOR, RESTO_MULT, FIM},                            /* 54 */
-    {RESTO_MULT, T_OPMULT, FATOR, RESTO_MULT, FIM},             /* 55 */
-    {RESTO_MULT, T_AND, FATOR, RESTO_MULT, FIM},                /* 56 */
-    {RESTO_MULT, FIM},                                          /* 57 */
-    {FATOR, T_ID, CHAMADA, FIM},                                /* 58 */
-    {FATOR, T_NUM_INT, FIM},                                    /* 59 */
-    {FATOR, T_NUM_REAL, FIM},                                   /* 60 */
-    {FATOR, T_TRUE, FIM},                                       /* 61 */
-    {FATOR, T_FALSE, FIM},                                      /* 62 */
-    {FATOR, T_ABRE_PAR, EXPR, T_FECHA_PAR, FIM},                /* 63 */
-    {FATOR, T_NOT, FATOR, FIM},                                 /* 64 */
-    {FATOR, T_OPSOMA, FATOR, FIM},                              /* 65 */
-    {CHAMADA, T_ABRE_PAR, LISTA_ARGS, T_FECHA_PAR, FIM},        /* 66 */
-    {CHAMADA, FIM},                                             /* 67 */
-    {PRINCIPAL, BLOCO, T_PONTO, FIM},                           /* 68 */
-    {PRINCIPAL, FIM}                                            /* 69 */
+    {FIM},
+    {PROGRAMA, CABECALHO, LISTA_DECL, PRINCIPAL, FIM},
+    {CABECALHO, T_PROGRAM, T_ID, T_PONTO_VIRG, FIM},
+    {CABECALHO, FIM},
+    {LISTA_DECL, DECL, LISTA_DECL, FIM},
+    {LISTA_DECL, FIM},
+    {DECL, T_VAR, DECL_VAR, FIM},
+    {DECL, DECL_VAR, FIM},
+    {DECL, PROCEDIMENTO, FIM},
+    {DECL, FUNCAO, FIM},
+    {DECL_VAR, LISTA_IDS, T_DOIS_PONTOS, TIPO, T_PONTO_VIRG, FIM},
+    {LISTA_IDS, T_ID, RESTO_IDS, FIM},
+    {RESTO_IDS, T_VIRGULA, T_ID, RESTO_IDS, FIM},
+    {RESTO_IDS, FIM},
+    {TIPO, T_INTEGER, FIM},
+    {TIPO, T_REAL, FIM},
+    {TIPO, T_BOOLEAN, FIM},
+    {PROCEDIMENTO, T_PROCEDURE, T_ID, PARAMS, T_PONTO_VIRG, CORPO, T_PONTO_VIRG, FIM},
+    {FUNCAO, T_FUNCTION, T_ID, PARAMS, T_DOIS_PONTOS, TIPO, T_PONTO_VIRG, CORPO, T_PONTO_VIRG, FIM},
+    {PARAMS, T_ABRE_PAR, LISTA_PARAMS, T_FECHA_PAR, FIM},
+    {PARAMS, FIM},
+    {LISTA_PARAMS, PARAM, RESTO_PARAMS, FIM},
+    {RESTO_PARAMS, T_PONTO_VIRG, PARAM, RESTO_PARAMS, FIM},
+    {RESTO_PARAMS, FIM},
+    {PARAM, LISTA_IDS, T_DOIS_PONTOS, TIPO, FIM},
+    {CORPO, SECAO_VAR, BLOCO, FIM},
+    {SECAO_VAR, T_VAR, DECL_VAR, RESTO_VAR, FIM},
+    {SECAO_VAR, FIM},
+    {RESTO_VAR, DECL_VAR, RESTO_VAR, FIM},
+    {RESTO_VAR, FIM},
+    {BLOCO, T_BEGIN, LISTA_CMD, T_END, FIM},
+    {LISTA_CMD, CMD, RESTO_CMD, FIM},
+    {RESTO_CMD, T_PONTO_VIRG, CMD, RESTO_CMD, FIM},
+    {RESTO_CMD, FIM},
+    {CMD, T_ID, RESTO_ID, FIM},
+    {CMD, T_IF, EXPR, T_THEN, CMD, SENAO, FIM},
+    {CMD, T_WHILE, EXPR, T_DO, CMD, FIM},
+    {CMD, BLOCO, FIM},
+    {CMD, FIM},
+    {RESTO_ID, T_ATRIB, EXPR, FIM},
+    {RESTO_ID, T_ABRE_PAR, LISTA_ARGS, T_FECHA_PAR, FIM},
+    {RESTO_ID, FIM},
+    {SENAO, T_ELSE, CMD, FIM},
+    {SENAO, FIM},
+    {LISTA_ARGS, EXPR, RESTO_ARGS, FIM},
+    {RESTO_ARGS, T_VIRGULA, EXPR, RESTO_ARGS, FIM},
+    {RESTO_ARGS, FIM},
+    {EXPR, EXPR_SIMPLES, RESTO_EXPR, FIM},
+    {RESTO_EXPR, T_OPREL, EXPR_SIMPLES, FIM},
+    {RESTO_EXPR, FIM},
+    {EXPR_SIMPLES, TERMO, RESTO_SOMA, FIM},
+    {RESTO_SOMA, T_OPSOMA, TERMO, RESTO_SOMA, FIM},
+    {RESTO_SOMA, T_OR, TERMO, RESTO_SOMA, FIM},
+    {RESTO_SOMA, FIM},
+    {TERMO, FATOR, RESTO_MULT, FIM},
+    {RESTO_MULT, T_OPMULT, FATOR, RESTO_MULT, FIM},
+    {RESTO_MULT, T_AND, FATOR, RESTO_MULT, FIM},
+    {RESTO_MULT, FIM},
+    {FATOR, T_ID, CHAMADA, FIM},
+    {FATOR, T_NUM_INT, FIM},
+    {FATOR, T_NUM_REAL, FIM},
+    {FATOR, T_TRUE, FIM},
+    {FATOR, T_FALSE, FIM},
+    {FATOR, T_ABRE_PAR, EXPR, T_FECHA_PAR, FIM},
+    {FATOR, T_NOT, FATOR, FIM},
+    {FATOR, T_OPSOMA, FATOR, FIM},
+    {CHAMADA, T_ABRE_PAR, LISTA_ARGS, T_FECHA_PAR, FIM},
+    {CHAMADA, FIM},
+    {PRINCIPAL, BLOCO, T_PONTO, FIM},
+    {PRINCIPAL, FIM}
 };
 
 int tamanho_producao(int p)
@@ -154,26 +136,18 @@ void imprime_producao(int p)
         printf(" %s", nome_simbolo(prod[p][i]));
 }
 
-/* ---------------- Tabela LL(1) ----------------
-   tabela(A, t) devolve o numero da producao de A que deve ser usada
-   quando o proximo token e t, ou 0 se nao tem producao (erro).
-   As condicoes vem dos conjuntos FIRST e FOLLOW (ver relatorio). */
-
-/* t pertence a FIRST(<expr>) ? */
 int inicio_expr(int t)
 {
     return t == T_ID || t == T_NUM_INT || t == T_NUM_REAL || t == T_TRUE ||
            t == T_FALSE || t == T_ABRE_PAR || t == T_NOT || t == T_OPSOMA;
 }
 
-/* t pertence a FOLLOW(<expr>) ? */
 int fim_expr(int t)
 {
     return t == T_THEN || t == T_DO || t == T_PONTO_VIRG || t == T_END ||
            t == T_ELSE || t == T_VIRGULA || t == T_FECHA_PAR;
 }
 
-/* t pertence a FOLLOW(<decl>) ? */
 int fim_decl(int t)
 {
     return t == T_VAR || t == T_ID || t == T_PROCEDURE || t == T_FUNCTION ||
@@ -270,9 +244,7 @@ int tabela(int A, int t)
         if (t == T_PONTO_VIRG || t == T_END || t == T_ELSE) return 41;
         break;
     case SENAO:
-        /* conflito do "else pendente": com else na entrada as duas producoes
-           serviriam. Escolhemos a 42, que liga o else ao if mais proximo
-           (mesma regra do Pascal). */
+
         if (t == T_ELSE) return 42;
         if (t == T_PONTO_VIRG || t == T_END) return 43;
         break;
@@ -329,8 +301,6 @@ int tabela(int A, int t)
     return 0;
 }
 
-/* ---------------- Tokens lidos pelo flex ---------------- */
-
 #define MAX_TOKENS 100000
 
 typedef struct {
@@ -342,14 +312,11 @@ typedef struct {
 Token tokens[MAX_TOKENS];
 int num_tokens = 0;
 
-/* producoes usadas, em ordem (formam a derivacao mais a esquerda) */
 #define MAX_DERIV 400000
 int derivacao[MAX_DERIV];
 int num_deriv = 0;
 
-/* ---------------- Pilha do automato ---------------- */
-
-#define MAX_PILHA 100000   /* suporta milhares de niveis de aninhamento */
+#define MAX_PILHA 100000
 
 int pilha[MAX_PILHA];
 int topo = 0;
@@ -368,7 +335,6 @@ void desempilha()
     topo--;
 }
 
-/* mostra a pilha com o topo a esquerda */
 void imprime_pilha()
 {
     int i;
@@ -378,7 +344,6 @@ void imprime_pilha()
     printf("\n");
 }
 
-/* mostra os proximos tokens da entrada */
 void imprime_entrada(int pos)
 {
     int i;
@@ -390,7 +355,6 @@ void imprime_entrada(int pos)
     printf("\n");
 }
 
-/* texto do token para as mensagens de erro */
 char *texto_token(int pos)
 {
     static char texto[300];
@@ -400,7 +364,6 @@ char *texto_token(int pos)
     return texto;
 }
 
-/* lista os tokens que a tabela aceitaria para o nao-terminal A */
 void imprime_esperados(int A)
 {
     int t, primeiro = 1;
@@ -431,7 +394,6 @@ int main(int argc, char **argv)
 
     printf("Reconhecedor miniPascal - arquivo: %s\n", argv[1]);
 
-    /* ======== FASE 1: analise lexica ======== */
     if (detalhado) {
         printf("\n===== FASE 1: ANALISE LEXICA (flex) =====\n");
         printf("Linha  Token       Lexema\n");
@@ -450,25 +412,24 @@ int main(int argc, char **argv)
         tokens[num_tokens].tipo = t;
         tokens[num_tokens].lexema = strdup(t == T_FIM ? "$" : yytext);
         tokens[num_tokens].linha = yylineno;
-        if (t == T_FIM && num_tokens > 0)   /* fim do arquivo: usa a linha do ultimo token */
+        if (t == T_FIM && num_tokens > 0)
             tokens[num_tokens].linha = tokens[num_tokens - 1].linha;
         if (detalhado)
             printf("%5d  %-10s  %s\n", yylineno, nome_terminal[t], tokens[num_tokens].lexema);
         num_tokens++;
     } while (t != T_FIM);
 
-    /* ======== FASE 2: automato de pilha ======== */
     if (detalhado)
         printf("\n===== FASE 2: AUTOMATO DE PILHA (tabela LL(1)) =====\n");
 
-    empilha(T_FIM);      /* fundo da pilha */
-    empilha(PROGRAMA);   /* simbolo inicial */
+    empilha(T_FIM);
+    empilha(PROGRAMA);
     pos = 0;
     passo = 0;
 
     while (1) {
-        X = pilha[topo - 1];      /* simbolo no topo da pilha */
-        a = tokens[pos].tipo;     /* proximo token da entrada */
+        X = pilha[topo - 1];
+        a = tokens[pos].tipo;
         passo++;
 
         if (detalhado) {
@@ -486,7 +447,7 @@ int main(int argc, char **argv)
 
         if (eh_terminal(X)) {
             if (X == a) {
-                /* terminal no topo igual ao token: desempilha e le o proximo */
+
                 if (detalhado)
                     printf("  Acao:    le '%s' e desempilha %s\n", tokens[pos].lexema, nome_terminal[X]);
                 desempilha();
@@ -497,7 +458,7 @@ int main(int argc, char **argv)
                 break;
             }
         } else {
-            /* nao-terminal no topo: consulta a tabela */
+
             p = tabela(X, a);
             if (p == 0) {
                 printf("\nErro sintatico na linha %d: encontrado %s ao reconhecer %s\n",
@@ -514,14 +475,13 @@ int main(int argc, char **argv)
             }
             if (num_deriv < MAX_DERIV)
                 derivacao[num_deriv++] = p;
-            /* troca A pelo lado direito, empilhando de tras para frente */
+
             desempilha();
             for (i = tamanho_producao(p); i >= 1; i--)
                 empilha(prod[p][i]);
         }
     }
 
-    /* ======== Resultado ======== */
     printf("\n===== RESULTADO =====\n");
     if (aceito) {
         printf("Programa ACEITO: o arquivo pertence a linguagem miniPascal.\n");

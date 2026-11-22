@@ -1,7 +1,3 @@
-/* pascal.l - analisador lexico do miniPascal (flex)
-   Baseado no exemplo do professor. Cada expressao regular vira
-   um estado final do AFD que o flex gera em lex.yy.c */
-
 %{
 #include "tokens.h"
 %}
@@ -16,9 +12,9 @@ ID       {LETRA}({LETRA}|{DIGITO})*
 
 %%
 
-"{"[^}]*"}"     { /* comentario entre chaves (pode ter varias linhas) */ }
-"//".*          { /* comentario de uma linha */ }
-[ \t\r\n]+      { /* ignora espacos, tabs e quebras de linha */ }
+"{"[^}]*"}"     {  }
+"//".*          {  }
+[ \t\r\n]+      {  }
 
 "program"       { return T_PROGRAM; }
 "var"           { return T_VAR; }
