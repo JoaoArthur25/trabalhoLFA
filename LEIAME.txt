@@ -1,0 +1,32 @@
+RECONHECEDOR DE miniPascal - Trabalho Final de LFA (UDESC)
+==========================================================
+
+Arquivos
+--------
+pascal.l       analisador lexico (flex): transforma o arquivo em tokens
+tokens.h       codigos dos tokens
+main.c         automato de pilha com tabela LL(1) (mostra os passos)
+lex.yy.c       gerado pelo flex a partir do pascal.l (ja vem pronto)
+main.exe       executavel para Windows (64 bits)
+teste.pas      arquivo de teste do professor
+testes/        outros arquivos de teste (aceitos e com erro)
+saidas/        saida completa do programa para cada teste
+
+Como compilar
+-------------
+Windows (com GCC/MinGW e Flex do GnuWin32, igual ao exemplo do professor):
+  1. Se alterar o pascal.l, rode "RUN FLEX.bat" (gera o lex.yy.c)
+  2. Rode "COMPILAR.bat" (gera o main.exe)
+
+Linux:
+  flex pascal.l
+  gcc main.c -o main
+
+Como executar
+-------------
+  main.exe teste.pas          mostra os tokens e todos os passos do automato
+  main.exe teste.pas -r       mostra so o resultado (ACEITO / REJEITADO)
+  main.exe teste.pas > saida.txt   salva os passos em um arquivo
+
+"RUN TESTE.bat" roda o teste.pas e salva os passos em saida_teste.txt.
+"RUN TODOS OS TESTES.bat" roda todos os arquivos da pasta testes.

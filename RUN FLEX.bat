@@ -1,0 +1,2 @@
+flex pascal.l
+PAUSE

@@ -1,0 +1,1322 @@
+Reconhecedor miniPascal - arquivo: testes/exemplo_enunciado.pas
+
+===== FASE 1: ANALISE LEXICA (flex) =====
+Linha  Token       Lexema
+    1  id          myglobalvar
+    1  :           :
+    1  real        real
+    1  ;           ;
+    3  procedure   procedure
+    3  id          minhafuncao
+    3  (           (
+    3  id          a
+    3  :           :
+    3  integer     integer
+    3  ;           ;
+    4  id          b
+    4  :           :
+    4  integer     integer
+    4  )           )
+    4  ;           ;
+    5  var         var
+    6  id          v1
+    6  :           :
+    6  integer     integer
+    6  ;           ;
+    7  begin       begin
+    8  if          if
+    8  id          a
+    8  oprel       >
+    8  num_int     10
+    8  then        then
+    8  begin       begin
+   10  id          myglobalvar
+   10  :=          :=
+   10  num_int     50
+   10  ;           ;
+   11  if          if
+   11  id          b
+   11  oprel       >
+   11  num_int     20
+   11  then        then
+   12  begin       begin
+   14  end         end
+   14  ;           ;
+   15  end         end
+   15  ;           ;
+   16  end         end
+   16  ;           ;
+   18  function    function
+   18  id          minhafuncao
+   18  (           (
+   18  id          a
+   18  :           :
+   18  integer     integer
+   18  ;           ;
+   18  id          b
+   18  :           :
+   18  integer     integer
+   18  )           )
+   18  :           :
+   18  integer     integer
+   18  ;           ;
+   19  begin       begin
+   20  if          if
+   20  id          a
+   20  oprel       >
+   20  num_int     10
+   20  then        then
+   20  begin       begin
+   21  if          if
+   21  id          b
+   21  oprel       >
+   21  num_int     20
+   21  then        then
+   22  begin       begin
+   24  end         end
+   24  ;           ;
+   25  end         end
+   25  ;           ;
+   26  id          Result
+   26  :=          :=
+   26  num_int     10
+   26  ;           ;
+   27  end         end
+   27  ;           ;
+   28  $           $
+
+===== FASE 2: AUTOMATO DE PILHA (tabela LL(1)) =====
+
+Passo 1
+  Pilha:   <programa> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (1) <programa> -> <cabecalho> <lista_decl> <principal>
+
+Passo 2
+  Pilha:   <cabecalho> <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (3) <cabecalho> -> vazio
+
+Passo 3
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (4) <lista_decl> -> <decl> <lista_decl>
+
+Passo 4
+  Pilha:   <decl> <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (7) <decl> -> <decl_var>
+
+Passo 5
+  Pilha:   <decl_var> <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (10) <decl_var> -> <lista_ids> : <tipo> ;
+
+Passo 6
+  Pilha:   <lista_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 7
+  Pilha:   id <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: myglobalvar : real ; procedure minhafuncao ...
+  Acao:    le 'myglobalvar' e desempilha id
+
+Passo 8
+  Pilha:   <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : real ; procedure minhafuncao ( ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 9
+  Pilha:   : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : real ; procedure minhafuncao ( ...
+  Acao:    le ':' e desempilha :
+
+Passo 10
+  Pilha:   <tipo> ; <lista_decl> <principal> $ 
+  Entrada: real ; procedure minhafuncao ( a ...
+  Acao:    (15) <tipo> -> real
+
+Passo 11
+  Pilha:   real ; <lista_decl> <principal> $ 
+  Entrada: real ; procedure minhafuncao ( a ...
+  Acao:    le 'real' e desempilha real
+
+Passo 12
+  Pilha:   ; <lista_decl> <principal> $ 
+  Entrada: ; procedure minhafuncao ( a : ...
+  Acao:    le ';' e desempilha ;
+
+Passo 13
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: procedure minhafuncao ( a : integer ...
+  Acao:    (4) <lista_decl> -> <decl> <lista_decl>
+
+Passo 14
+  Pilha:   <decl> <lista_decl> <principal> $ 
+  Entrada: procedure minhafuncao ( a : integer ...
+  Acao:    (8) <decl> -> <procedimento>
+
+Passo 15
+  Pilha:   <procedimento> <lista_decl> <principal> $ 
+  Entrada: procedure minhafuncao ( a : integer ...
+  Acao:    (17) <procedimento> -> procedure id <params> ; <corpo> ;
+
+Passo 16
+  Pilha:   procedure id <params> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: procedure minhafuncao ( a : integer ...
+  Acao:    le 'procedure' e desempilha procedure
+
+Passo 17
+  Pilha:   id <params> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: minhafuncao ( a : integer ; ...
+  Acao:    le 'minhafuncao' e desempilha id
+
+Passo 18
+  Pilha:   <params> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ( a : integer ; b ...
+  Acao:    (19) <params> -> ( <lista_params> )
+
+Passo 19
+  Pilha:   ( <lista_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ( a : integer ; b ...
+  Acao:    le '(' e desempilha (
+
+Passo 20
+  Pilha:   <lista_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (21) <lista_params> -> <param> <resto_params>
+
+Passo 21
+  Pilha:   <param> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (24) <param> -> <lista_ids> : <tipo>
+
+Passo 22
+  Pilha:   <lista_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 23
+  Pilha:   id <resto_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    le 'a' e desempilha id
+
+Passo 24
+  Pilha:   <resto_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; b : integer ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 25
+  Pilha:   : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; b : integer ...
+  Acao:    le ':' e desempilha :
+
+Passo 26
+  Pilha:   <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; b : integer ) ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 27
+  Pilha:   integer <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; b : integer ) ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 28
+  Pilha:   <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; b : integer ) ; ...
+  Acao:    (22) <resto_params> -> ; <param> <resto_params>
+
+Passo 29
+  Pilha:   ; <param> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; b : integer ) ; ...
+  Acao:    le ';' e desempilha ;
+
+Passo 30
+  Pilha:   <param> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) ; var ...
+  Acao:    (24) <param> -> <lista_ids> : <tipo>
+
+Passo 31
+  Pilha:   <lista_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) ; var ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 32
+  Pilha:   id <resto_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) ; var ...
+  Acao:    le 'b' e desempilha id
+
+Passo 33
+  Pilha:   <resto_ids> : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ) ; var v1 ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 34
+  Pilha:   : <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ) ; var v1 ...
+  Acao:    le ':' e desempilha :
+
+Passo 35
+  Pilha:   <tipo> <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ) ; var v1 : ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 36
+  Pilha:   integer <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ) ; var v1 : ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 37
+  Pilha:   <resto_params> ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ) ; var v1 : integer ...
+  Acao:    (23) <resto_params> -> vazio
+
+Passo 38
+  Pilha:   ) ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ) ; var v1 : integer ...
+  Acao:    le ')' e desempilha )
+
+Passo 39
+  Pilha:   ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; var v1 : integer ; ...
+  Acao:    le ';' e desempilha ;
+
+Passo 40
+  Pilha:   <corpo> ; <lista_decl> <principal> $ 
+  Entrada: var v1 : integer ; begin ...
+  Acao:    (25) <corpo> -> <secao_var> <bloco>
+
+Passo 41
+  Pilha:   <secao_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: var v1 : integer ; begin ...
+  Acao:    (26) <secao_var> -> var <decl_var> <resto_var>
+
+Passo 42
+  Pilha:   var <decl_var> <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: var v1 : integer ; begin ...
+  Acao:    le 'var' e desempilha var
+
+Passo 43
+  Pilha:   <decl_var> <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: v1 : integer ; begin if ...
+  Acao:    (10) <decl_var> -> <lista_ids> : <tipo> ;
+
+Passo 44
+  Pilha:   <lista_ids> : <tipo> ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: v1 : integer ; begin if ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 45
+  Pilha:   id <resto_ids> : <tipo> ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: v1 : integer ; begin if ...
+  Acao:    le 'v1' e desempilha id
+
+Passo 46
+  Pilha:   <resto_ids> : <tipo> ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; begin if a ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 47
+  Pilha:   : <tipo> ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; begin if a ...
+  Acao:    le ':' e desempilha :
+
+Passo 48
+  Pilha:   <tipo> ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: integer ; begin if a > ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 49
+  Pilha:   integer ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: integer ; begin if a > ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 50
+  Pilha:   ; <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: ; begin if a > 10 ...
+  Acao:    le ';' e desempilha ;
+
+Passo 51
+  Pilha:   <resto_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    (29) <resto_var> -> vazio
+
+Passo 52
+  Pilha:   <bloco> ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 53
+  Pilha:   begin <lista_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 54
+  Pilha:   <lista_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 55
+  Pilha:   <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    (35) <cmd> -> if <expr> then <cmd> <senao>
+
+Passo 56
+  Pilha:   if <expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    le 'if' e desempilha if
+
+Passo 57
+  Pilha:   <expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin myglobalvar ...
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 58
+  Pilha:   <expr_simples> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin myglobalvar ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 59
+  Pilha:   <termo> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin myglobalvar ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 60
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin myglobalvar ...
+  Acao:    (58) <fator> -> id <chamada>
+
+Passo 61
+  Pilha:   id <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin myglobalvar ...
+  Acao:    le 'a' e desempilha id
+
+Passo 62
+  Pilha:   <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin myglobalvar := ...
+  Acao:    (67) <chamada> -> vazio
+
+Passo 63
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin myglobalvar := ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 64
+  Pilha:   <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin myglobalvar := ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 65
+  Pilha:   <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin myglobalvar := ...
+  Acao:    (48) <resto_expr> -> oprel <expr_simples>
+
+Passo 66
+  Pilha:   oprel <expr_simples> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin myglobalvar := ...
+  Acao:    le '>' e desempilha oprel
+
+Passo 67
+  Pilha:   <expr_simples> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin myglobalvar := 50 ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 68
+  Pilha:   <termo> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin myglobalvar := 50 ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 69
+  Pilha:   <fator> <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin myglobalvar := 50 ...
+  Acao:    (59) <fator> -> num_int
+
+Passo 70
+  Pilha:   num_int <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin myglobalvar := 50 ...
+  Acao:    le '10' e desempilha num_int
+
+Passo 71
+  Pilha:   <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin myglobalvar := 50 ; ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 72
+  Pilha:   <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin myglobalvar := 50 ; ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 73
+  Pilha:   then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin myglobalvar := 50 ; ...
+  Acao:    le 'then' e desempilha then
+
+Passo 74
+  Pilha:   <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin myglobalvar := 50 ; if ...
+  Acao:    (37) <cmd> -> <bloco>
+
+Passo 75
+  Pilha:   <bloco> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin myglobalvar := 50 ; if ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 76
+  Pilha:   begin <lista_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin myglobalvar := 50 ; if ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 77
+  Pilha:   <lista_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: myglobalvar := 50 ; if b ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 78
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: myglobalvar := 50 ; if b ...
+  Acao:    (34) <cmd> -> id <resto_id>
+
+Passo 79
+  Pilha:   id <resto_id> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: myglobalvar := 50 ; if b ...
+  Acao:    le 'myglobalvar' e desempilha id
+
+Passo 80
+  Pilha:   <resto_id> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: := 50 ; if b > ...
+  Acao:    (39) <resto_id> -> := <expr>
+
+Passo 81
+  Pilha:   := <expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: := 50 ; if b > ...
+  Acao:    le ':=' e desempilha :=
+
+Passo 82
+  Pilha:   <expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 50 ; if b > 20 ...
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 83
+  Pilha:   <expr_simples> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 50 ; if b > 20 ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 84
+  Pilha:   <termo> <resto_soma> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 50 ; if b > 20 ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 85
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 50 ; if b > 20 ...
+  Acao:    (59) <fator> -> num_int
+
+Passo 86
+  Pilha:   num_int <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 50 ; if b > 20 ...
+  Acao:    le '50' e desempilha num_int
+
+Passo 87
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; if b > 20 then ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 88
+  Pilha:   <resto_soma> <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; if b > 20 then ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 89
+  Pilha:   <resto_expr> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; if b > 20 then ...
+  Acao:    (49) <resto_expr> -> vazio
+
+Passo 90
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; if b > 20 then ...
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 91
+  Pilha:   ; <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; if b > 20 then ...
+  Acao:    le ';' e desempilha ;
+
+Passo 92
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if b > 20 then begin ...
+  Acao:    (35) <cmd> -> if <expr> then <cmd> <senao>
+
+Passo 93
+  Pilha:   if <expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if b > 20 then begin ...
+  Acao:    le 'if' e desempilha if
+
+Passo 94
+  Pilha:   <expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 95
+  Pilha:   <expr_simples> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 96
+  Pilha:   <termo> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 97
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (58) <fator> -> id <chamada>
+
+Passo 98
+  Pilha:   id <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    le 'b' e desempilha id
+
+Passo 99
+  Pilha:   <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (67) <chamada> -> vazio
+
+Passo 100
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 101
+  Pilha:   <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 102
+  Pilha:   <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (48) <resto_expr> -> oprel <expr_simples>
+
+Passo 103
+  Pilha:   oprel <expr_simples> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    le '>' e desempilha oprel
+
+Passo 104
+  Pilha:   <expr_simples> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 105
+  Pilha:   <termo> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 106
+  Pilha:   <fator> <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (59) <fator> -> num_int
+
+Passo 107
+  Pilha:   num_int <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    le '20' e desempilha num_int
+
+Passo 108
+  Pilha:   <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 109
+  Pilha:   <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 110
+  Pilha:   then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    le 'then' e desempilha then
+
+Passo 111
+  Pilha:   <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; end ...
+  Acao:    (37) <cmd> -> <bloco>
+
+Passo 112
+  Pilha:   <bloco> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; end ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 113
+  Pilha:   begin <lista_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; end ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 114
+  Pilha:   <lista_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; end ; ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 115
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; end ; ...
+  Acao:    (38) <cmd> -> vazio
+
+Passo 116
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; end ; ...
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 117
+  Pilha:   end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; end ; ...
+  Acao:    le 'end' e desempilha end
+
+Passo 118
+  Pilha:   <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; end ; function ...
+  Acao:    (43) <senao> -> vazio
+
+Passo 119
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; end ; function ...
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 120
+  Pilha:   ; <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; end ; function ...
+  Acao:    le ';' e desempilha ;
+
+Passo 121
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; function minhafuncao ...
+  Acao:    (38) <cmd> -> vazio
+
+Passo 122
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; function minhafuncao ...
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 123
+  Pilha:   end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; function minhafuncao ...
+  Acao:    le 'end' e desempilha end
+
+Passo 124
+  Pilha:   <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; function minhafuncao ( ...
+  Acao:    (43) <senao> -> vazio
+
+Passo 125
+  Pilha:   <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; function minhafuncao ( ...
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 126
+  Pilha:   ; <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; function minhafuncao ( ...
+  Acao:    le ';' e desempilha ;
+
+Passo 127
+  Pilha:   <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; function minhafuncao ( a ...
+  Acao:    (38) <cmd> -> vazio
+
+Passo 128
+  Pilha:   <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; function minhafuncao ( a ...
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 129
+  Pilha:   end ; <lista_decl> <principal> $ 
+  Entrada: end ; function minhafuncao ( a ...
+  Acao:    le 'end' e desempilha end
+
+Passo 130
+  Pilha:   ; <lista_decl> <principal> $ 
+  Entrada: ; function minhafuncao ( a : ...
+  Acao:    le ';' e desempilha ;
+
+Passo 131
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: function minhafuncao ( a : integer ...
+  Acao:    (4) <lista_decl> -> <decl> <lista_decl>
+
+Passo 132
+  Pilha:   <decl> <lista_decl> <principal> $ 
+  Entrada: function minhafuncao ( a : integer ...
+  Acao:    (9) <decl> -> <funcao>
+
+Passo 133
+  Pilha:   <funcao> <lista_decl> <principal> $ 
+  Entrada: function minhafuncao ( a : integer ...
+  Acao:    (18) <funcao> -> function id <params> : <tipo> ; <corpo> ;
+
+Passo 134
+  Pilha:   function id <params> : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: function minhafuncao ( a : integer ...
+  Acao:    le 'function' e desempilha function
+
+Passo 135
+  Pilha:   id <params> : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: minhafuncao ( a : integer ; ...
+  Acao:    le 'minhafuncao' e desempilha id
+
+Passo 136
+  Pilha:   <params> : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ( a : integer ; b ...
+  Acao:    (19) <params> -> ( <lista_params> )
+
+Passo 137
+  Pilha:   ( <lista_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ( a : integer ; b ...
+  Acao:    le '(' e desempilha (
+
+Passo 138
+  Pilha:   <lista_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (21) <lista_params> -> <param> <resto_params>
+
+Passo 139
+  Pilha:   <param> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (24) <param> -> <lista_ids> : <tipo>
+
+Passo 140
+  Pilha:   <lista_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 141
+  Pilha:   id <resto_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: a : integer ; b : ...
+  Acao:    le 'a' e desempilha id
+
+Passo 142
+  Pilha:   <resto_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; b : integer ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 143
+  Pilha:   : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; b : integer ...
+  Acao:    le ':' e desempilha :
+
+Passo 144
+  Pilha:   <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; b : integer ) ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 145
+  Pilha:   integer <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; b : integer ) ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 146
+  Pilha:   <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; b : integer ) : ...
+  Acao:    (22) <resto_params> -> ; <param> <resto_params>
+
+Passo 147
+  Pilha:   ; <param> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; b : integer ) : ...
+  Acao:    le ';' e desempilha ;
+
+Passo 148
+  Pilha:   <param> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) : integer ...
+  Acao:    (24) <param> -> <lista_ids> : <tipo>
+
+Passo 149
+  Pilha:   <lista_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) : integer ...
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 150
+  Pilha:   id <resto_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: b : integer ) : integer ...
+  Acao:    le 'b' e desempilha id
+
+Passo 151
+  Pilha:   <resto_ids> : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ) : integer ; ...
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 152
+  Pilha:   : <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ) : integer ; ...
+  Acao:    le ':' e desempilha :
+
+Passo 153
+  Pilha:   <tipo> <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ) : integer ; begin ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 154
+  Pilha:   integer <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ) : integer ; begin ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 155
+  Pilha:   <resto_params> ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ) : integer ; begin if ...
+  Acao:    (23) <resto_params> -> vazio
+
+Passo 156
+  Pilha:   ) : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ) : integer ; begin if ...
+  Acao:    le ')' e desempilha )
+
+Passo 157
+  Pilha:   : <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: : integer ; begin if a ...
+  Acao:    le ':' e desempilha :
+
+Passo 158
+  Pilha:   <tipo> ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; begin if a > ...
+  Acao:    (14) <tipo> -> integer
+
+Passo 159
+  Pilha:   integer ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: integer ; begin if a > ...
+  Acao:    le 'integer' e desempilha integer
+
+Passo 160
+  Pilha:   ; <corpo> ; <lista_decl> <principal> $ 
+  Entrada: ; begin if a > 10 ...
+  Acao:    le ';' e desempilha ;
+
+Passo 161
+  Pilha:   <corpo> ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    (25) <corpo> -> <secao_var> <bloco>
+
+Passo 162
+  Pilha:   <secao_var> <bloco> ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    (27) <secao_var> -> vazio
+
+Passo 163
+  Pilha:   <bloco> ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 164
+  Pilha:   begin <lista_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin if a > 10 then ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 165
+  Pilha:   <lista_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 166
+  Pilha:   <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    (35) <cmd> -> if <expr> then <cmd> <senao>
+
+Passo 167
+  Pilha:   if <expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if a > 10 then begin ...
+  Acao:    le 'if' e desempilha if
+
+Passo 168
+  Pilha:   <expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin if ...
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 169
+  Pilha:   <expr_simples> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin if ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 170
+  Pilha:   <termo> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin if ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 171
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin if ...
+  Acao:    (58) <fator> -> id <chamada>
+
+Passo 172
+  Pilha:   id <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: a > 10 then begin if ...
+  Acao:    le 'a' e desempilha id
+
+Passo 173
+  Pilha:   <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin if b ...
+  Acao:    (67) <chamada> -> vazio
+
+Passo 174
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin if b ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 175
+  Pilha:   <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin if b ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 176
+  Pilha:   <resto_expr> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin if b ...
+  Acao:    (48) <resto_expr> -> oprel <expr_simples>
+
+Passo 177
+  Pilha:   oprel <expr_simples> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 10 then begin if b ...
+  Acao:    le '>' e desempilha oprel
+
+Passo 178
+  Pilha:   <expr_simples> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin if b > ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 179
+  Pilha:   <termo> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin if b > ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 180
+  Pilha:   <fator> <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin if b > ...
+  Acao:    (59) <fator> -> num_int
+
+Passo 181
+  Pilha:   num_int <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 then begin if b > ...
+  Acao:    le '10' e desempilha num_int
+
+Passo 182
+  Pilha:   <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin if b > 20 ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 183
+  Pilha:   <resto_soma> then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin if b > 20 ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 184
+  Pilha:   then <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin if b > 20 ...
+  Acao:    le 'then' e desempilha then
+
+Passo 185
+  Pilha:   <cmd> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin if b > 20 then ...
+  Acao:    (37) <cmd> -> <bloco>
+
+Passo 186
+  Pilha:   <bloco> <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin if b > 20 then ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 187
+  Pilha:   begin <lista_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin if b > 20 then ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 188
+  Pilha:   <lista_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if b > 20 then begin ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 189
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if b > 20 then begin ...
+  Acao:    (35) <cmd> -> if <expr> then <cmd> <senao>
+
+Passo 190
+  Pilha:   if <expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: if b > 20 then begin ...
+  Acao:    le 'if' e desempilha if
+
+Passo 191
+  Pilha:   <expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 192
+  Pilha:   <expr_simples> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 193
+  Pilha:   <termo> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 194
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    (58) <fator> -> id <chamada>
+
+Passo 195
+  Pilha:   id <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: b > 20 then begin end ...
+  Acao:    le 'b' e desempilha id
+
+Passo 196
+  Pilha:   <chamada> <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (67) <chamada> -> vazio
+
+Passo 197
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 198
+  Pilha:   <resto_soma> <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 199
+  Pilha:   <resto_expr> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    (48) <resto_expr> -> oprel <expr_simples>
+
+Passo 200
+  Pilha:   oprel <expr_simples> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: > 20 then begin end ; ...
+  Acao:    le '>' e desempilha oprel
+
+Passo 201
+  Pilha:   <expr_simples> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 202
+  Pilha:   <termo> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 203
+  Pilha:   <fator> <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    (59) <fator> -> num_int
+
+Passo 204
+  Pilha:   num_int <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 20 then begin end ; end ...
+  Acao:    le '20' e desempilha num_int
+
+Passo 205
+  Pilha:   <resto_mult> <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 206
+  Pilha:   <resto_soma> then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 207
+  Pilha:   then <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: then begin end ; end ; ...
+  Acao:    le 'then' e desempilha then
+
+Passo 208
+  Pilha:   <cmd> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; Result ...
+  Acao:    (37) <cmd> -> <bloco>
+
+Passo 209
+  Pilha:   <bloco> <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; Result ...
+  Acao:    (30) <bloco> -> begin <lista_cmd> end
+
+Passo 210
+  Pilha:   begin <lista_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: begin end ; end ; Result ...
+  Acao:    le 'begin' e desempilha begin
+
+Passo 211
+  Pilha:   <lista_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; Result := ...
+  Acao:    (31) <lista_cmd> -> <cmd> <resto_cmd>
+
+Passo 212
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; Result := ...
+  Acao:    (38) <cmd> -> vazio
+
+Passo 213
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; Result := ...
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 214
+  Pilha:   end <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; end ; Result := ...
+  Acao:    le 'end' e desempilha end
+
+Passo 215
+  Pilha:   <senao> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; Result := 10 ...
+  Acao:    (43) <senao> -> vazio
+
+Passo 216
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; Result := 10 ...
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 217
+  Pilha:   ; <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; Result := 10 ...
+  Acao:    le ';' e desempilha ;
+
+Passo 218
+  Pilha:   <cmd> <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; Result := 10 ; ...
+  Acao:    (38) <cmd> -> vazio
+
+Passo 219
+  Pilha:   <resto_cmd> end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; Result := 10 ; ...
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 220
+  Pilha:   end <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; Result := 10 ; ...
+  Acao:    le 'end' e desempilha end
+
+Passo 221
+  Pilha:   <senao> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; Result := 10 ; end ...
+  Acao:    (43) <senao> -> vazio
+
+Passo 222
+  Pilha:   <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; Result := 10 ; end ...
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 223
+  Pilha:   ; <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; Result := 10 ; end ...
+  Acao:    le ';' e desempilha ;
+
+Passo 224
+  Pilha:   <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: Result := 10 ; end ; ...
+  Acao:    (34) <cmd> -> id <resto_id>
+
+Passo 225
+  Pilha:   id <resto_id> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: Result := 10 ; end ; ...
+  Acao:    le 'Result' e desempilha id
+
+Passo 226
+  Pilha:   <resto_id> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: := 10 ; end ; $ 
+  Acao:    (39) <resto_id> -> := <expr>
+
+Passo 227
+  Pilha:   := <expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: := 10 ; end ; $ 
+  Acao:    le ':=' e desempilha :=
+
+Passo 228
+  Pilha:   <expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 ; end ; $ 
+  Acao:    (47) <expr> -> <expr_simples> <resto_expr>
+
+Passo 229
+  Pilha:   <expr_simples> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 ; end ; $ 
+  Acao:    (50) <expr_simples> -> <termo> <resto_soma>
+
+Passo 230
+  Pilha:   <termo> <resto_soma> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 ; end ; $ 
+  Acao:    (54) <termo> -> <fator> <resto_mult>
+
+Passo 231
+  Pilha:   <fator> <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 ; end ; $ 
+  Acao:    (59) <fator> -> num_int
+
+Passo 232
+  Pilha:   num_int <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: 10 ; end ; $ 
+  Acao:    le '10' e desempilha num_int
+
+Passo 233
+  Pilha:   <resto_mult> <resto_soma> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; $ 
+  Acao:    (57) <resto_mult> -> vazio
+
+Passo 234
+  Pilha:   <resto_soma> <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; $ 
+  Acao:    (53) <resto_soma> -> vazio
+
+Passo 235
+  Pilha:   <resto_expr> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; $ 
+  Acao:    (49) <resto_expr> -> vazio
+
+Passo 236
+  Pilha:   <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; $ 
+  Acao:    (32) <resto_cmd> -> ; <cmd> <resto_cmd>
+
+Passo 237
+  Pilha:   ; <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: ; end ; $ 
+  Acao:    le ';' e desempilha ;
+
+Passo 238
+  Pilha:   <cmd> <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; $ 
+  Acao:    (38) <cmd> -> vazio
+
+Passo 239
+  Pilha:   <resto_cmd> end ; <lista_decl> <principal> $ 
+  Entrada: end ; $ 
+  Acao:    (33) <resto_cmd> -> vazio
+
+Passo 240
+  Pilha:   end ; <lista_decl> <principal> $ 
+  Entrada: end ; $ 
+  Acao:    le 'end' e desempilha end
+
+Passo 241
+  Pilha:   ; <lista_decl> <principal> $ 
+  Entrada: ; $ 
+  Acao:    le ';' e desempilha ;
+
+Passo 242
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: $ 
+  Acao:    (5) <lista_decl> -> vazio
+
+Passo 243
+  Pilha:   <principal> $ 
+  Entrada: $ 
+  Acao:    (69) <principal> -> vazio
+
+Passo 244
+  Pilha:   $ 
+  Entrada: $ 
+  Acao:    ACEITA (pilha so com $ e entrada toda lida)
+
+===== RESULTADO =====
+Programa ACEITO: o arquivo pertence a linguagem miniPascal.
+Tokens lidos: 81 | Passos do automato: 244 | Producoes aplicadas: 162
+Derivacao mais a esquerda (numeros das producoes):
+1 3 4 7 10 11 13 15 4 8 17 19 21 24 11 13 14 22 24 11
+13 14 23 25 26 10 11 13 14 29 30 31 35 47 50 54 58 67 57 53
+48 50 54 59 57 53 37 30 31 34 39 47 50 54 59 57 53 49 32 35
+47 50 54 58 67 57 53 48 50 54 59 57 53 37 30 31 38 33 43 32
+38 33 43 32 38 33 4 9 18 19 21 24 11 13 14 22 24 11 13 14
+23 14 25 27 30 31 35 47 50 54 58 67 57 53 48 50 54 59 57 53
+37 30 31 35 47 50 54 58 67 57 53 48 50 54 59 57 53 37 30 31
+38 33 43 32 38 33 43 32 34 39 47 50 54 59 57 53 49 32 38 33
+5 69 

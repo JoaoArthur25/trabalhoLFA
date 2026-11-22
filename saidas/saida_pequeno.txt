@@ -1,0 +1,92 @@
+Reconhecedor miniPascal - arquivo: testes/pequeno.pas
+
+===== FASE 1: ANALISE LEXICA (flex) =====
+Linha  Token       Lexema
+    1  id          x
+    1  :           :
+    1  real        real
+    1  ;           ;
+    2  $           $
+
+===== FASE 2: AUTOMATO DE PILHA (tabela LL(1)) =====
+
+Passo 1
+  Pilha:   <programa> $ 
+  Entrada: x : real ; $ 
+  Acao:    (1) <programa> -> <cabecalho> <lista_decl> <principal>
+
+Passo 2
+  Pilha:   <cabecalho> <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    (3) <cabecalho> -> vazio
+
+Passo 3
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    (4) <lista_decl> -> <decl> <lista_decl>
+
+Passo 4
+  Pilha:   <decl> <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    (7) <decl> -> <decl_var>
+
+Passo 5
+  Pilha:   <decl_var> <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    (10) <decl_var> -> <lista_ids> : <tipo> ;
+
+Passo 6
+  Pilha:   <lista_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 7
+  Pilha:   id <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: x : real ; $ 
+  Acao:    le 'x' e desempilha id
+
+Passo 8
+  Pilha:   <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : real ; $ 
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 9
+  Pilha:   : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : real ; $ 
+  Acao:    le ':' e desempilha :
+
+Passo 10
+  Pilha:   <tipo> ; <lista_decl> <principal> $ 
+  Entrada: real ; $ 
+  Acao:    (15) <tipo> -> real
+
+Passo 11
+  Pilha:   real ; <lista_decl> <principal> $ 
+  Entrada: real ; $ 
+  Acao:    le 'real' e desempilha real
+
+Passo 12
+  Pilha:   ; <lista_decl> <principal> $ 
+  Entrada: ; $ 
+  Acao:    le ';' e desempilha ;
+
+Passo 13
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: $ 
+  Acao:    (5) <lista_decl> -> vazio
+
+Passo 14
+  Pilha:   <principal> $ 
+  Entrada: $ 
+  Acao:    (69) <principal> -> vazio
+
+Passo 15
+  Pilha:   $ 
+  Entrada: $ 
+  Acao:    ACEITA (pilha so com $ e entrada toda lida)
+
+===== RESULTADO =====
+Programa ACEITO: o arquivo pertence a linguagem miniPascal.
+Tokens lidos: 4 | Passos do automato: 15 | Producoes aplicadas: 10
+Derivacao mais a esquerda (numeros das producoes):
+1 3 4 7 10 11 13 15 5 69 

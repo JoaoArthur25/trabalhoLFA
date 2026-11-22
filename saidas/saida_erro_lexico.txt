@@ -1,0 +1,19 @@
+Reconhecedor miniPascal - arquivo: testes/erro_lexico.pas
+
+===== FASE 1: ANALISE LEXICA (flex) =====
+Linha  Token       Lexema
+    1  procedure   procedure
+    1  id          teste
+    1  (           (
+    1  id          a
+    1  :           :
+    1  integer     integer
+    1  )           )
+    1  ;           ;
+    2  begin       begin
+    3  id          a
+    3  :=          :=
+    3  id          a
+
+Erro lexico na linha 3: caractere '#' nao reconhecido
+Programa REJEITADO.

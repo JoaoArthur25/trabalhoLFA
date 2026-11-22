@@ -1,0 +1,65 @@
+Reconhecedor miniPascal - arquivo: testes/erro_tipo.pas
+
+===== FASE 1: ANALISE LEXICA (flex) =====
+Linha  Token       Lexema
+    1  id          x
+    1  :           :
+    1  ;           ;
+    2  $           $
+
+===== FASE 2: AUTOMATO DE PILHA (tabela LL(1)) =====
+
+Passo 1
+  Pilha:   <programa> $ 
+  Entrada: x : ; $ 
+  Acao:    (1) <programa> -> <cabecalho> <lista_decl> <principal>
+
+Passo 2
+  Pilha:   <cabecalho> <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    (3) <cabecalho> -> vazio
+
+Passo 3
+  Pilha:   <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    (4) <lista_decl> -> <decl> <lista_decl>
+
+Passo 4
+  Pilha:   <decl> <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    (7) <decl> -> <decl_var>
+
+Passo 5
+  Pilha:   <decl_var> <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    (10) <decl_var> -> <lista_ids> : <tipo> ;
+
+Passo 6
+  Pilha:   <lista_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    (11) <lista_ids> -> id <resto_ids>
+
+Passo 7
+  Pilha:   id <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: x : ; $ 
+  Acao:    le 'x' e desempilha id
+
+Passo 8
+  Pilha:   <resto_ids> : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : ; $ 
+  Acao:    (13) <resto_ids> -> vazio
+
+Passo 9
+  Pilha:   : <tipo> ; <lista_decl> <principal> $ 
+  Entrada: : ; $ 
+  Acao:    le ':' e desempilha :
+
+Passo 10
+  Pilha:   <tipo> ; <lista_decl> <principal> $ 
+  Entrada: ; $ 
+
+Erro sintatico na linha 1: encontrado ';' ao reconhecer <tipo>
+Esperado um destes: integer, real, boolean
+
+===== RESULTADO =====
+Programa REJEITADO.
